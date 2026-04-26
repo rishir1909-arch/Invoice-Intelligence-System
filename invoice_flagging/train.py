@@ -1,0 +1,66 @@
+import os
+import joblib
+from pathlib import Path
+
+from data_preprocessing import load_invoice_data, split_data, scale_features, apply_labels
+from modeling_evaluation import train_random_forest, evaluate_classifier
+
+
+FEATURES = [
+    "invoice_quantity",
+    "invoice_dollars",
+    "Freight",
+    "total_item_quantity",
+    "total_item_dollars"
+]
+
+TARGET = "flag_invoice"
+
+
+def main():
+
+    BASE_DIR = Path(__file__).resolve().parent
+
+    # ✅ CENTRAL MODEL FOLDER (shared)
+    MODEL_DIR = BASE_DIR.parent / "models"
+    MODEL_DIR.mkdir(exist_ok=True)
+
+    scaler_path = MODEL_DIR / "scaler.pkl"
+    model_path = MODEL_DIR / "predict_flag_invoice.pkl"
+
+    # Load data
+    df = load_invoice_data()
+    df = apply_labels(df)
+
+    # Validate features
+    missing = [col for col in FEATURES if col not in df.columns]
+    if missing:
+        raise ValueError(f"Missing columns: {missing}")
+
+    # Split
+    X_train, X_test, y_train, y_test = split_data(df, FEATURES, TARGET)
+
+    # Scale
+    X_train_scaled, X_test_scaled = scale_features(
+        X_train, X_test, scaler_path
+    )
+
+    # Train
+    grid_search = train_random_forest(X_train_scaled, y_train)
+
+    # Evaluate
+    evaluate_classifier(
+        grid_search.best_estimator_,
+        X_test_scaled,
+        y_test,
+        "Random Forest Classifier"
+    )
+
+    # Save model
+    joblib.dump(grid_search.best_estimator_, model_path)
+
+    print(f"\nModel saved at: {model_path}")
+
+
+if __name__ == "__main__":
+    main()

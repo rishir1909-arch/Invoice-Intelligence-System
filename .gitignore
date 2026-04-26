@@ -1,0 +1,14 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Logs & data
+logs/
+altdata/
+
+# Project-specific data folders
+freight_cost_prediction/data/
+
