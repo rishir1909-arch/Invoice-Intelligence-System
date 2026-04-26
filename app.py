@@ -11,32 +11,15 @@ st.set_page_config(
 st.markdown("""
 # 💳 Vendor Invoice Intelligence Portal
 ### AI-Driven Freight Cost Prediction & Invoice Risk Flagging
-
-This internal analytics portal leverages machine learning to
-- **Forecast freight costs accurately**
-- **Detect risky or abnormal vendor invoices**
-- **Reduce financial leakage and manual workload**
 """)
 
 st.divider()
 
 # Sidebar
-st.sidebar.title("🔍 Model Selection")
 selected_model = st.sidebar.radio(
     "Choose Prediction Module",
-    [
-        "Freight Cost Prediction",
-        "Invoice Manual Approval Flag"
-    ]
+    ["Freight Cost Prediction", "Invoice Manual Approval Flag"]
 )
-
-st.sidebar.markdown("""
----
-**Business Impact**
-- 📉 Improved cost forecasting
-- 🛡️ Reduced invoice fraud & anomalies
-- ⚡ Faster finance operations
-""")
 
 # =========================================================
 # 🚚 Freight Cost Prediction
@@ -45,15 +28,9 @@ if selected_model == "Freight Cost Prediction":
 
     st.subheader("🚚 Freight Cost Prediction")
 
-    st.markdown("""
-    **Objective:**
-    Predict freight cost for a vendor invoice using **Invoice Dollars**
-    to support budgeting and forecasting.
-    """)
-
     with st.form("freight_form"):
-        dollars = st.number_input(
-            "💰 Invoice Dollars",
+        invoice_rupees = st.number_input(
+            "💰 Invoice Amount (₹)",
             min_value=1.0,
             value=18500.0
         )
@@ -61,8 +38,10 @@ if selected_model == "Freight Cost Prediction":
         submit_freight = st.form_submit_button("Predict Freight Cost")
 
     if submit_freight:
+
+        # IMPORTANT: backend still uses "Dollars"
         input_data = {
-            "Dollars": [dollars]
+            "Dollars": [invoice_rupees]
         }
 
         prediction = predict_freight_cost(input_data)["Predicted_Freight"]
@@ -71,7 +50,7 @@ if selected_model == "Freight Cost Prediction":
 
         st.metric(
             label="📦 Estimated Freight Cost",
-            value=f"${prediction.iloc[0]:,.2f}"
+            value=f"₹{prediction.iloc[0]:,.2f}"
         )
 
 # =========================================================
@@ -80,12 +59,6 @@ if selected_model == "Freight Cost Prediction":
 elif selected_model == "Invoice Manual Approval Flag":
 
     st.subheader("🧾 Invoice Manual Approval Prediction")
-
-    st.markdown("""
-    **Objective:**
-    Predict whether a vendor invoice should be **flagged for manual approval**
-    based on abnormal cost, freight, or delivery patterns.
-    """)
 
     with st.form("invoice_flag_form"):
 
@@ -98,14 +71,14 @@ elif selected_model == "Invoice Manual Approval Flag":
                 value=50
             )
             freight = st.number_input(
-                "Freight Cost",
+                "Freight Cost (₹)",
                 min_value=0.0,
                 value=1.73
             )
 
         with col2:
-            invoice_dollars = st.number_input(
-                "Invoice Dollars",
+            invoice_amount = st.number_input(
+                "Invoice Amount (₹)",
                 min_value=1.0,
                 value=352.95
             )
@@ -116,8 +89,8 @@ elif selected_model == "Invoice Manual Approval Flag":
             )
 
         with col3:
-            total_item_dollars = st.number_input(
-                "Total Item Dollars",
+            total_item_amount = st.number_input(
+                "Total Item Amount (₹)",
                 min_value=1.0,
                 value=2476.0
             )
@@ -125,18 +98,19 @@ elif selected_model == "Invoice Manual Approval Flag":
         submit_flag = st.form_submit_button("🔎 Evaluate Invoice Risk")
 
     if submit_flag:
+
         input_data = {
             "invoice_quantity": [invoice_quantity],
-            "invoice_dollars": [invoice_dollars],
+            "invoice_dollars": [invoice_amount],   # backend key unchanged
             "Freight": [freight],
             "total_item_quantity": [total_item_quantity],
-            "total_item_dollars": [total_item_dollars]
+            "total_item_dollars": [total_item_amount]
         }
 
         flag_prediction = predict_invoice_flag(input_data)["Predicted_Flag"]
         is_flagged = bool(flag_prediction.iloc[0])
 
         if is_flagged:
-            st.error("⚠️ Invoice requires **MANUAL APPROVAL**")
+            st.error("⚠️ Invoice requires MANUAL APPROVAL")
         else:
-            st.success("✅ Invoice is **SAFE for Auto-Approval**")
+            st.success("✅ Invoice is SAFE for Auto-Approval")
