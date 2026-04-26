@@ -3,13 +3,13 @@ from inference.predict_freight import predict_freight_cost
 from inference.invoice_flag import predict_invoice_flag
 
 st.set_page_config(
-    page_title="Vendor Invoice Intelligence Portal",
+    page_title="Intelli-Invoice Portal",
     page_icon="🚚",
     layout="wide"
 )
 
 st.markdown("""
-# 💳 Vendor Invoice Intelligence Portal
+# 💳 Intelli-Invoice Portal
 ### AI-Driven Freight Cost Prediction & Invoice Risk Flagging
 
 This internal analytics portal leverages machine learning to
@@ -32,14 +32,14 @@ selected_model = st.sidebar.radio(
 st.sidebar.markdown("""
 ---
 **Business Impact**
-- 📉 Improved cost forecasting
-- 🛡️ Reduced invoice fraud & anomalies
-- ⚡ Faster finance operations
+- Improved cost forecasting
+- Reduced invoice fraud & anomalies
+- Faster finance operations
 """)
 
 # ---------------- FREIGHT COST PREDICTION ----------------
 if selected_model == "Freight Cost Prediction":
-    st.subheader("🚚 Freight Cost Prediction")
+    st.subheader("Predict Freight Cost")
 
     st.markdown("""
     **Objective:**
@@ -49,12 +49,12 @@ if selected_model == "Freight Cost Prediction":
 
     with st.form("freight_form"):
         dollars = st.number_input(
-            "💰 Invoice Amount (₹)",
+            "💰 Enter Invoice Amount (₹)",
             min_value=1.0,
             value=18500.0
         )
 
-        submit_freight = st.form_submit_button("🚀 Predict Freight Cost")
+        submit_freight = st.form_submit_button("Predict Cost")
 
     if submit_freight:
         input_data = {
@@ -116,7 +116,7 @@ elif selected_model == "Invoice Manual Approval Flag":
                 value=2476.0
             )
 
-        submit_flag = st.form_submit_button("🔎 Evaluate Invoice Risk")
+        submit_flag = st.form_submit_button("Evaluate Invoice Risk")
 
     if submit_flag:
         input_data = {
