@@ -2,143 +2,135 @@ import streamlit as st
 from inference.predict_freight import predict_freight_cost
 from inference.invoice_flag import predict_invoice_flag
 
-# =========================
-# PAGE CONFIG
-# =========================
 st.set_page_config(
     page_title="Vendor Invoice Intelligence Portal",
     page_icon="🚚",
     layout="wide"
 )
 
-# =========================
-# CUSTOM STYLE (simple but professional)
-# =========================
 st.markdown("""
-    <style>
-        .main-title {
-            font-size: 34px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
+# 💳 Vendor Invoice Intelligence Portal
+### AI-Driven Freight Cost Prediction & Invoice Risk Flagging
 
-        .sub-title {
-            font-size: 16px;
-            color: #6c757d;
-            margin-bottom: 20px;
-        }
+This internal analytics portal leverages machine learning to
+- **Forecast freight costs accurately**
+- **Detect risky or abnormal vendor invoices**
+- **Reduce financial leakage and manual workload**
+""")
 
-        .block-card {
-            padding: 18px;
-            border-radius: 12px;
-            background-color: #f8f9fa;
-            border: 1px solid #e9ecef;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# =========================
-# HEADER
-# =========================
-st.markdown("<div class='main-title'>💳 Vendor Invoice Intelligence Portal</div>", unsafe_allow_html=True)
-st.markdown("<div class='sub-title'>AI-powered Freight Cost Prediction & Invoice Risk Analysis</div>", unsafe_allow_html=True)
-
-st.divider()
-
-# =========================
-# SIDEBAR
-# =========================
+# Sidebar
+# --------------------------------------------------
+st.sidebar.title("🔍 Model Selection")
 selected_model = st.sidebar.radio(
-    "Select Module",
-    ["🚚 Freight Cost Prediction", "🧾 Invoice Risk Flagging"]
+    "Choose Prediction Module",
+    [
+        "Freight Cost Prediction",
+        "Invoice Manual Approval Flag"
+    ]
 )
 
-# =========================================================
-# 🚚 FREIGHT COST PREDICTION
-# =========================================================
-if selected_model == "🚚 Freight Cost Prediction":
+st.sidebar.markdown("""
+---
+**Business Impact**
+- 📉 Improved cost forecasting
+- 🛡️ Reduced invoice fraud & anomalies
+- ⚡ Faster finance operations
+""")
 
-    st.markdown("## Freight Cost Prediction")
+# ---------------- FREIGHT COST PREDICTION ----------------
+if selected_model == "Freight Cost Prediction":
+    st.subheader("🚚 Freight Cost Prediction")
 
-    st.markdown("<div class='block-card'>", unsafe_allow_html=True)
+    st.markdown("""
+    **Objective:**
+    Predict freight cost for a vendor invoice using only **Invoice Amount**
+    to support budgeting, forecasting, and vendor negotiations.
+    """)
 
     with st.form("freight_form"):
-
-        st.write("Enter invoice value to estimate expected freight cost.")
-
-        invoice_rupees = st.number_input(
-            "Invoice Amount (₹)",
+        dollars = st.number_input(
+            "💰 Invoice Amount (₹)",
             min_value=1.0,
             value=18500.0
         )
 
-        submit = st.form_submit_button("Predict Freight Cost")
+        submit_freight = st.form_submit_button("🚀 Predict Freight Cost")
 
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    if submit:
-
+    if submit_freight:
         input_data = {
-            "Dollars": [invoice_rupees]   # backend mapping unchanged
+            "Dollars": [dollars]
         }
 
-        prediction = predict_freight_cost(input_data)["Predicted_Freight"]
+        prediction = predict_freight_cost(input_data)['Predicted_Freight']
 
-        st.success("Prediction completed successfully")
+        st.success("Prediction completed successfully.")
 
         st.metric(
-            label="Estimated Freight Cost",
-            value=f"₹{prediction.iloc[0]:,.2f}"
+            label="📦 Estimated Freight Cost",
+            value=f"₹{prediction[0]:,.2f}"
         )
+# ---------------- INVOICE FLAG PREDICTION ----------------
+elif selected_model == "Invoice Manual Approval Flag":
 
-# =========================================================
-# 🧾 INVOICE FLAGGING
-# =========================================================
-elif selected_model == "🧾 Invoice Risk Flagging":
+    st.subheader("🧾 Invoice Manual Approval Prediction")
 
-    st.markdown("## Invoice Risk Analysis")
-
-    st.markdown("<div class='block-card'>", unsafe_allow_html=True)
+    st.markdown("""
+    **Objective:**
+    Predict whether a vendor invoice should be **flagged for manual approval**
+    based on abnormal cost, freight, or delivery patterns.
+    """)
 
     with st.form("invoice_flag_form"):
-
-        st.write("Provide invoice details to check whether manual approval is required.")
-
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            invoice_quantity = st.number_input("Invoice Quantity", min_value=1, value=50)
-            freight = st.number_input("Freight Cost (₹)", min_value=0.0, value=1.73)
+            invoice_quantity = st.number_input(
+                "Invoice Quantity",
+                min_value=1,
+                value=50
+            )
+
+            freight = st.number_input(
+                "Freight Cost",
+                min_value=0.0,
+                value=1.73
+            )
 
         with col2:
-            invoice_amount = st.number_input("Invoice Amount (₹)", min_value=1.0, value=352.95)
-            total_item_quantity = st.number_input("Total Item Quantity", min_value=1, value=162)
+            invoice_dollars = st.number_input(
+                "Invoice Amount(₹)",
+                min_value=1.0,
+                value=352.95
+            )
+
+            total_item_quantity = st.number_input(
+                "Total Item Quantity",
+                min_value=1,
+                value=162
+            )
 
         with col3:
-            total_item_amount = st.number_input("Total Item Amount (₹)", min_value=1.0, value=2476.0)
+            total_item_dollars = st.number_input(
+                "Total Item Amount(₹)",
+                min_value=1.0,
+                value=2476.0
+            )
 
-        submit_flag = st.form_submit_button("Evaluate Invoice")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+        submit_flag = st.form_submit_button("🔎 Evaluate Invoice Risk")
 
     if submit_flag:
-
         input_data = {
             "invoice_quantity": [invoice_quantity],
-            "invoice_dollars": [invoice_amount],
+            "invoice_dollars": [invoice_dollars],
             "Freight": [freight],
             "total_item_quantity": [total_item_quantity],
-            "total_item_dollars": [total_item_amount]
+            "total_item_dollars": [total_item_dollars]
         }
 
-        flag_prediction = predict_invoice_flag(input_data)["Predicted_Flag"]
-        is_flagged = bool(flag_prediction.iloc[0])
-
-        st.divider()
+        flag_prediction = predict_invoice_flag(input_data)['Predicted_Flag']
+        is_flagged = bool(flag_prediction[0])
 
         if is_flagged:
-            st.error("⚠️ Manual Approval Required")
-            st.caption("This invoice shows anomalies or mismatch patterns.")
+            st.error("⚠️ Invoice requires **MANUAL APPROVAL**")
         else:
-            st.success("✅ Auto-Approved")
-            st.caption("Invoice appears consistent and safe for processing.")
+            st.success("✅ Invoice is **SAFE for Auto-Approval**")
